@@ -197,13 +197,34 @@ class MiniCssExtractPlugin {
               Template.indent([
                 'promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {',
                 Template.indent([
+
+                  `var href = ${linkHrefPath};`,
+                  `var fullhref = ${mainTemplate.requireFn}.p + href;`,
+                  'var existingLinkTags = document.getElementsByTagName("link");',
+                  'for(var i = 0; i < existingLinkTags.length; i++) {',
+                  Template.indent([
+                    'var tag = existingLinkTags[i];',
+                    'if(tag.rel === "stylesheet" && (tag.href === href || tag.href === fullhref)) return resolve();',
+                  ]),
+                  '}',
+                  'var existingStyleTags = document.getElementsByTagName("style");',
+                  'for(var i = 0; i < existingStyleTags.length; i++) {',
+                  Template.indent([
+                    'var tag = existingStyleTags[i];',
+                    'var dataHref = tag.getAttribute("data-href");',
+                    'if(dataHref === href || dataHref === fullhref) return resolve();',
+                  ]),
+                  '}',
                   'var linkTag = document.createElement("link");',
                   'linkTag.rel = "stylesheet";',
                   'linkTag.onload = resolve;',
                   'linkTag.onerror = reject;',
-                  `linkTag.href = ${mainTemplate.requireFn}.p + ${linkHrefPath};`,
+                  'linkTag.href = href;',
                   'var head = document.getElementsByTagName("head")[0];',
                   'head.appendChild(linkTag);',
+                ]),
+                '}).then(function() {',
+                Template.indent([
                   'installedCssChunks[chunkId] = 0;',
                 ]),
                 '}));',
