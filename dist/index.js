@@ -1,16 +1,35 @@
-import fs from 'fs';
-import path from 'path';
-import webpack from 'webpack';
-import sources from 'webpack-sources';
+'use strict';
 
-const { ConcatSource, SourceMapSource, OriginalSource } = sources;
-const { Template } = webpack;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-const NS = path.dirname(fs.realpathSync(__filename));
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _webpack = require('webpack');
+
+var _webpack2 = _interopRequireDefault(_webpack);
+
+var _webpackSources = require('webpack-sources');
+
+var _webpackSources2 = _interopRequireDefault(_webpackSources);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const { ConcatSource, SourceMapSource, OriginalSource } = _webpackSources2.default;
+const { Template } = _webpack2.default;
+
+const NS = _path2.default.dirname(_fs2.default.realpathSync(__filename));
 
 const pluginName = 'mini-css-extract-plugin';
 
-class CssDependency extends webpack.Dependency {
+class CssDependency extends _webpack2.default.Dependency {
   constructor({ identifier, content, media, sourceMap }, context, identifierIndex) {
     super();
     this.identifier = identifier;
@@ -30,7 +49,7 @@ class CssDependencyTemplate {
   apply() {}
 }
 
-class CssModule extends webpack.Module {
+class CssModule extends _webpack2.default.Module {
   constructor(dependency) {
     super(NS, dependency.context);
     this._identifier = dependency.identifier;
@@ -77,7 +96,7 @@ class CssModuleFactory {
 class MiniCssExtractPlugin {
   constructor(options) {
     this.options = Object.assign({
-      filename: '[name].css',
+      filename: '[name].css'
     }, options);
     if (!this.options.chunkFilename) {
       const { filename } = this.options;
@@ -95,11 +114,11 @@ class MiniCssExtractPlugin {
   }
 
   apply(compiler) {
-    compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
+    compiler.hooks.thisCompilation.tap(pluginName, compilation => {
       compilation.hooks.normalModuleLoader.tap(pluginName, (lc, m) => {
         const loaderContext = lc;
         const module = m;
-        loaderContext[NS] = (content) => {
+        loaderContext[NS] = content => {
           if (!Array.isArray(content) && content != null) {
             throw new Error(`Exported value was not extracted as an array: ${JSON.stringify(content)}`);
           }
@@ -120,9 +139,9 @@ class MiniCssExtractPlugin {
             render: () => this.renderContentAsset(renderedModules, compilation.runtimeTemplate.requestShortener),
             filenameTemplate: this.options.filename,
             pathOptions: {
-              chunk,
+              chunk
             },
-            identifier: `mini-css-extract-plugin.${chunk.id}`,
+            identifier: `mini-css-extract-plugin.${chunk.id}`
           });
         }
       });
@@ -133,86 +152,46 @@ class MiniCssExtractPlugin {
             render: () => this.renderContentAsset(renderedModules, compilation.runtimeTemplate.requestShortener),
             filenameTemplate: this.options.chunkFilename,
             pathOptions: {
-              chunk,
+              chunk
             },
-            identifier: `mini-css-extract-plugin.${chunk.id}`,
+            identifier: `mini-css-extract-plugin.${chunk.id}`
           });
         }
       });
       const { mainTemplate } = compilation;
-      mainTemplate.hooks.localVars.tap(
-        pluginName,
-        (source, chunk) => {
-          const chunkMap = this.getCssChunkObject(chunk);
-          if (Object.keys(chunkMap).length > 0) {
-            return Template.asString([
-              source,
-              '',
-              '// object to store loaded CSS chunks',
-              'var installedCssChunks = {',
-              Template.indent(
-                chunk.ids.map(id => `${JSON.stringify(id)}: 0`).join(',\n'),
-              ),
-              '}',
-            ]);
-          }
-          return source;
-        },
-      );
-      mainTemplate.hooks.requireEnsure.tap(
-        pluginName,
-        (source, chunk, hash) => {
-          const chunkMap = this.getCssChunkObject(chunk);
-          if (Object.keys(chunkMap).length > 0) {
-            const chunkMaps = chunk.getChunkMaps();
-            const linkHrefPath = mainTemplate.getAssetPath(
-              JSON.stringify(this.options.chunkFilename),
-              {
-                hash: `" + ${mainTemplate.renderCurrentHashCode(hash)} + "`,
-                hashWithLength: length =>
-                  `" + ${mainTemplate.renderCurrentHashCode(hash, length)} + "`,
-                chunk: {
-                  id: '" + chunkId + "',
-                  hash: `" + ${JSON.stringify(chunkMaps.hash)}[chunkId] + "`,
-                  hashWithLength(length) {
-                    const shortChunkHashMap = Object.create(null);
-                    for (const chunkId of Object.keys(chunkMaps.hash)) {
-                      if (typeof chunkMaps.hash[chunkId] === 'string') {
-                        shortChunkHashMap[chunkId] = chunkMaps.hash[chunkId].substr(0, length);
-                      }
-                    }
-                    return `" + ${JSON.stringify(shortChunkHashMap)}[chunkId] + "`;
-                  },
-                  name: `" + (${JSON.stringify(chunkMaps.name)}[chunkId]||chunkId) + "`,
-                },
+      mainTemplate.hooks.localVars.tap(pluginName, (source, chunk) => {
+        const chunkMap = this.getCssChunkObject(chunk);
+        if (Object.keys(chunkMap).length > 0) {
+          return Template.asString([source, '', '// object to store loaded CSS chunks', 'var installedCssChunks = {', Template.indent(chunk.ids.map(id => `${JSON.stringify(id)}: 0`).join(',\n')), '}']);
+        }
+        return source;
+      });
+      mainTemplate.hooks.requireEnsure.tap(pluginName, (source, chunk, hash) => {
+        const chunkMap = this.getCssChunkObject(chunk);
+        if (Object.keys(chunkMap).length > 0) {
+          const chunkMaps = chunk.getChunkMaps();
+          const linkHrefPath = mainTemplate.getAssetPath(JSON.stringify(this.options.chunkFilename), {
+            hash: `" + ${mainTemplate.renderCurrentHashCode(hash)} + "`,
+            hashWithLength: length => `" + ${mainTemplate.renderCurrentHashCode(hash, length)} + "`,
+            chunk: {
+              id: '" + chunkId + "',
+              hash: `" + ${JSON.stringify(chunkMaps.hash)}[chunkId] + "`,
+              hashWithLength(length) {
+                const shortChunkHashMap = Object.create(null);
+                for (const chunkId of Object.keys(chunkMaps.hash)) {
+                  if (typeof chunkMaps.hash[chunkId] === 'string') {
+                    shortChunkHashMap[chunkId] = chunkMaps.hash[chunkId].substr(0, length);
+                  }
+                }
+                return `" + ${JSON.stringify(shortChunkHashMap)}[chunkId] + "`;
               },
-            );
-            return Template.asString([
-              source,
-              '',
-              '// mini-css-extract-plugin CSS loading',
-              `var cssChunks = ${JSON.stringify(chunkMap)};`,
-              'if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);',
-              'else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {',
-              Template.indent([
-                'promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {',
-                Template.indent([
-                  'var linkTag = document.createElement("link");',
-                  'linkTag.rel = "stylesheet";',
-                  'linkTag.onload = resolve;',
-                  'linkTag.onerror = reject;',
-                  `linkTag.href = ${mainTemplate.requireFn}.p + ${linkHrefPath};`,
-                  'var head = document.getElementsByTagName("head")[0];',
-                  'head.appendChild(linkTag);',
-                  'installedCssChunks[chunkId] = 0;',
-                ]),
-                '}));',
-              ]),
-              '}',
-            ]);
-          }
-          return source;
-        });
+              name: `" + (${JSON.stringify(chunkMaps.name)}[chunkId]||chunkId) + "`
+            }
+          });
+          return Template.asString([source, '', '// mini-css-extract-plugin CSS loading', `var cssChunks = ${JSON.stringify(chunkMap)};`, 'if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);', 'else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {', Template.indent(['promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {', Template.indent(['var linkTag = document.createElement("link");', 'linkTag.rel = "stylesheet";', 'linkTag.onload = resolve;', 'linkTag.onerror = reject;', `linkTag.href = ${mainTemplate.requireFn}.p + ${linkHrefPath};`, 'var head = document.getElementsByTagName("head")[0];', 'head.appendChild(linkTag);', 'installedCssChunks[chunkId] = 0;']), '}));']), '}']);
+        }
+        return source;
+      });
     });
   }
 
@@ -236,10 +215,7 @@ class MiniCssExtractPlugin {
     for (const m of modules) {
       // support reset file url
       if (this.options.replace && this.options.regex) {
-        m.content = m.content.replace(
-          this.options.regex,
-          this.options.replace,
-        );
+        m.content = m.content.replace(this.options.regex, this.options.replace);
       }
       if (/^@import url/.test(m.content)) {
         // HACK for IE
@@ -274,4 +250,4 @@ class MiniCssExtractPlugin {
 
 MiniCssExtractPlugin.loader = require.resolve('./loader');
 
-export default MiniCssExtractPlugin;
+exports.default = MiniCssExtractPlugin;
